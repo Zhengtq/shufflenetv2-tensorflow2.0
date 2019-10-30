@@ -4,10 +4,10 @@ import os
 from tensorflow.keras import layers
 
 
-def batch_norm(is_training):
+def batch_norm(training):
     return layers.BatchNormalization(axis=3, momentum=0.99,
                         epsilon=0.001, center=True,
-                        scale=True, trainable=is_training, fused=True)
+                        scale=True, trainable=training, fused=True)
 
 
 class ShufflenetV2(tf.keras.Model):
@@ -18,7 +18,7 @@ class ShufflenetV2(tf.keras.Model):
         self.num_classes = num_classes
 
         self.conv1 = layers.Conv2D(24, kernel_size=3, strides=2, padding='SAME')
-        self.bn1 = batch_norm(training)
+        self.bn1 = batch_norm(self.training)
         self.act1 = layers.Activation("relu")
         self.maxpool1 = layers.MaxPooling2D((3, 3), (2, 2), padding='SAME')
 
@@ -31,18 +31,18 @@ class ShufflenetV2(tf.keras.Model):
         self.dense1 = layers.Dense(1)
 
 
-    def call(self, x, training=True):
+    def call(self, x):
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.act1(x)
         x = self.maxpool1(x)
 
-        x = self.block1(x, training=training)
-        x = self.block2(x, training=training)
-        x = self.block3(x, training=training)
+        x = self.block1(x)
+        x = self.block2(x)
+        x = self.block3(x)
 
         x = self.globalavgpool(x)
-        x = self.dropout1(x, training=training)
+        x = self.dropout1(x, training=self.training)
         x = self.dense1(x)
 
         return x
@@ -54,6 +54,7 @@ class ShuffleBlock(tf.keras.Model):
     def __init__(self, num_units, in_channels, out_channels=None, training=True):
         super(ShuffleBlock, self).__init__()
 
+        self.training = training
         self.num_units = num_units
         self.in_channels = in_channels
         self.out_channels = 2 * self.in_channels if out_channels is None else out_channels
@@ -64,21 +65,21 @@ class ShuffleBlock(tf.keras.Model):
 
 
         self.conv1 = layers.Conv2D(self.in_channels, kernel_size=1, strides=1, padding='SAME')
-        self.bn1 = batch_norm(training)
+        self.bn1 = batch_norm(self.training)
         self.act1 = layers.Activation("relu")
 
         self.dwconv2 = layers.DepthwiseConv2D(kernel_size=3, strides=2, padding='SAME') 
-        self.bn2 = batch_norm(training)
+        self.bn2 = batch_norm(self.training)
        
         self.conv3 = layers.Conv2D(self.out_channels // 2, kernel_size=1,strides=1, padding='SAME')
-        self.bn3 = batch_norm(training)
+        self.bn3 = batch_norm(self.training)
         self.act3 = layers.Activation("relu")
 
         self.dwconv4 = layers.DepthwiseConv2D(kernel_size=3, strides=2, padding='SAME')
-        self.bn4 = batch_norm(training)
+        self.bn4 = batch_norm(self.training)
 
         self.conv5 = layers.Conv2D(self.out_channels // 2, kernel_size=1,strides=1, padding='SAME')
-        self.bn5 = batch_norm(training)
+        self.bn5 = batch_norm(self.training)
         self.act5 = layers.Activation("relu")
 
     def shuffle_xy(self, x, y):
@@ -90,7 +91,7 @@ class ShuffleBlock(tf.keras.Model):
         x, y = tf.split(z, num_or_size_splits=2, axis=3)
 
 
-    def call(self, x, training=True):
+    def call(self, x):
         y = self.conv1(x)
         y = self.bn1(y)
         y = self.act1(y)
@@ -112,7 +113,7 @@ class ShuffleBlock(tf.keras.Model):
         basic_uint_count = 0
         for j in range(2, self.num_units + 1):
             x, y = self.shuffle_xy(x, y)
-            x = self.all_basic_uint[basic_uint_count](x, training=training)
+            x = self.all_basic_uint[basic_uint_count](x)
             basic_uint_count += 1
 
         x = layers.concatenate([x,y])
@@ -140,7 +141,7 @@ class BasicUnit(tf.keras.Model, training=True):
         self.act3 = layers.Activation("relu")
 
 
-    def call(self, x, training=True):
+    def call(self, x):
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.act1(x)
