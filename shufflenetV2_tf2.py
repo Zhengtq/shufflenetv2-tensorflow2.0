@@ -61,7 +61,7 @@ class ShuffleBlock(tf.keras.Model):
 
         self.all_basic_uint = []
         for j in range(2, self.num_units + 1):
-            self.all_basic_uint.append(BasicUnit(self.out_channels))
+            self.all_basic_uint.append(BasicUnit(in_channels=self.out_channels//2))
 
 
         self.conv1 = layers.Conv2D(self.in_channels, kernel_size=1, strides=1, padding='SAME')
@@ -89,6 +89,7 @@ class ShuffleBlock(tf.keras.Model):
         z = tf.transpose(z, [0, 1, 2, 4, 3])
         z = tf.reshape(z, [batch_size, height, width, 2*depth]) 
         x, y = tf.split(z, num_or_size_splits=2, axis=3)
+        return x, y
 
 
     def call(self, x):
@@ -123,8 +124,8 @@ class ShuffleBlock(tf.keras.Model):
 
 
 
-class BasicUnit(tf.keras.Model, training=True):
-    def __init__(self, in_channels = 10):
+class BasicUnit(tf.keras.Model):
+    def __init__(self, in_channels = 10, training = True):
         super(BasicUnit, self).__init__()
         self.in_channels = in_channels
 
@@ -162,6 +163,7 @@ if __name__ == '__main__':
 
     x = tf.random.uniform((2, 224,224, 3))
     for ind in range(10000):
+        print(ind)
         y = model(x)
     model.build((1,224,224,3))
     model.summary()
