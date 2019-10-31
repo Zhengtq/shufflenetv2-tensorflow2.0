@@ -50,7 +50,7 @@ class ShufflenetV2(tf.keras.Model):
 
 
 
-class ShuffleBlock(tf.keras.layers.Layer):
+class ShuffleBlock(tf.keras.Model):
     def __init__(self, num_units, in_channels, out_channels=None, training=True):
         super(ShuffleBlock, self).__init__()
 
@@ -124,7 +124,7 @@ class ShuffleBlock(tf.keras.layers.Layer):
 
 
 
-class BasicUnit(tf.keras.layers.Layer):
+class BasicUnit(tf.keras.Model):
     def __init__(self, in_channels = 10, training = True):
         super(BasicUnit, self).__init__()
         self.in_channels = in_channels
