@@ -3,7 +3,6 @@ import numpy as np
 import os
 from tensorflow.keras import layers
 
-
 def batch_norm(training):
     return layers.BatchNormalization(axis=3, momentum=0.99,
                         epsilon=0.001, center=True,
@@ -159,12 +158,18 @@ class BasicUnit(tf.keras.Model):
 
 if __name__ == '__main__':
 
+
     model = ShufflenetV2(num_classes=1, training=False)
 
-    x = tf.random.uniform((2, 224,224, 3))
-    for ind in range(10000):
-        print(ind)
+    @tf.function
+    def produce_num(model):
+        x = tf.random.uniform((32, 224,224, 3))
         y = model(x)
+        return y
+
+    for ind in range(10000):
+        y = produce_num(model)
+        print(y, ind)
     model.build((1,224,224,3))
     model.summary()
 
