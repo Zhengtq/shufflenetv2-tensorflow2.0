@@ -30,9 +30,9 @@ class ShufflenetV2(tf.keras.Model):
         self.dropout1 = layers.Dropout(rate=0.7)
         self.dense1 = layers.Dense(1)
 
-        self.conv2 = layers.Conv2D(1024, kernel_size=1, strides=1, padding='SAME')
-        self.bn2 = batch_norm(self.training)
-        self.act2 = layers.Activation("relu")
+        self.conv5 = layers.Conv2D(1024, kernel_size=1, strides=1, padding='SAME')
+        self.bn5 = batch_norm(self.training)
+        self.act5 = layers.Activation("relu")
 
 
 
@@ -46,9 +46,9 @@ class ShufflenetV2(tf.keras.Model):
         x = self.block2(x)
         x = self.block3(x)
 
-        x = self.conv2(x)
-        x = self.bn2(x)
-        x = self.act2(x)
+        x = self.conv5(x)
+        x = self.bn5(x)
+        x = self.act5(x)
 
         x = self.globalavgpool(x)
         x = self.dropout1(x, training=self.training)
